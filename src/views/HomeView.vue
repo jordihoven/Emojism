@@ -12,9 +12,8 @@
         <span class="research">Researches automatically when you change your searchterm ✨</span>
       </div>
       <div v-else-if="emojis.length" class="results-list">
-        <div v-for="emoji in filteredEmojis" :key="emoji.slug" class="movie-card">
-          <span>{{ emoji.character }}</span>
-          {{ emoji.unicodeName }}
+        <div v-for="emoji in filteredEmojis" :key="emoji.slug" class="emoji-card">
+         {{ emoji.character }}
         </div>
       </div>
       <div v-else class="empty-state">
@@ -125,19 +124,22 @@ export default {
   pointer-events: none; /* Prevent icon from blocking clicks on input */
 }
 
-.movie-card {
+.emoji-card {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: var(--s-spacing);
-  transition: var(--transition);
   border: 1px solid var(--stroke);
   border-radius: var(--radius);
   padding: var(--xs-spacing);
   background-color: var(--bg-primary);
+  transition: var(--transition);
 }
-.movie-card:hover {
-  filter: brightness(98%);
+.emoji-card:hover {
+  cursor: pointer;
+  border-color: var(--primary);
+  background-color: var(--bg-secondary);
+  box-shadow: var(--box-shadow);
 }
 
 .movie-details {
@@ -168,7 +170,7 @@ export default {
   width: 4rem;
   aspect-ratio: 2 / 3;
 }
-.movie-card img {
+.emoji-card img {
   border-radius: var(--radius);
   width: 100%;
   height: 100%;
@@ -176,7 +178,7 @@ export default {
   box-shadow: 0 0 8px var(--bg-secondary); /* TODO: find a subtle dropshadow color that works on light & darkmode */
 }
 
-.movie-card .no-poster {
+.emoji-card .no-poster {
   background-color: var(--bg-secondary);
   height: 100%;
   border-radius: var(--radius);
@@ -186,10 +188,13 @@ export default {
 }
 
 .results-list {
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
   gap: var(--xs-spacing);
+  margin: 0 auto;
+  max-width: 60rem;
 }
-.results-list,
+
 .input-container {
   max-width: 60rem;
   display: flex;

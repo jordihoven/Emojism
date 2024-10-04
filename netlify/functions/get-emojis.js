@@ -5,11 +5,8 @@ export async function handler(event, context) {
     const { query } = event.queryStringParameters;
   
     // Construct the URL for the emoji search (or get all emojis if no query)
-    const apiUrl = query
-      ? `https://emoji-api.com/emojis?access_key=${EMOJI_API}&search=${query}`
-      : `https://emoji-api.com/emojis?access_key=${EMOJI_API}`;
+    const apiUrl = `https://emoji-api.com/emojis?access_key=${EMOJI_API}&search=${query}`
   
-      console.log(apiUrl)
     try {
       // Fetch data from the Emoji API
       const response = await fetch(apiUrl);

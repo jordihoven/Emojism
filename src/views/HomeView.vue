@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="search-wrapper">
       <div class="input-container">
-        <input class="search" v-model="searchQuery" @input="fetchEmojis" placeholder="Search emoji by title or description..." />
+        <input class="search" v-model="searchQuery" @input="debouncedFetchEmojis" placeholder="Search emoji by title or description..." />
         <LucideSearch class="icon search-icon"></LucideSearch>
       </div>
     </div>
@@ -12,7 +12,7 @@
         <span class="research">Researches automatically when you change your searchterm ✨</span>
       </div>
       <div v-else-if="emojis.length" class="results-list">
-        <div v-for="emoji in filteredEmojis" :key="emoji.slug" class="emoji-card">
+        <div v-for="emoji in filteredEmojis" :key="emoji.slug" class="emoji-card" @click="copyToClipboard(emoji.character)">
          {{ emoji.character }}
         </div>
       </div>
@@ -25,15 +25,23 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import axios from 'axios';
+import { useClipboard } from '@vueuse/core';
+import { useDebounceFn } from '@vueuse/core';
+import { toast } from 'toaster-ts'
 
 export default {
   setup() {
     const searchQuery = ref('')
     const emojis = ref([])
-    const error = ref(null)
     const loading = ref(false)
+    const { copy } = useClipboard();
+
+    const copyToClipboard = (emoji) => {
+      copy(emoji)
+      toast.success(`${emoji} copied to clipboard!`)
+    };
 
     const filteredEmojis = computed(() => {
       return emojis.value.filter((emoji) =>
@@ -41,39 +49,29 @@ export default {
       );
     });
 
-     // Fetch emojis on component mount
-     onMounted(() => {
-      fetchEmojis();
-    });
-
     // Fetch movies from API
     const fetchEmojis = (async () => {
         loading.value = true
-
-        const query = searchQuery.value.trim()
-
-        const url = query
-        ? `/.netlify/functions/get-emojis?query=${query}`
-        : `/.netlify/functions/get-emojis`;
-
         try {
-          const response = await axios.get(url);
+          const response = await axios.get(`/.netlify/functions/get-emojis?query=${searchQuery.value.trim()}`);
           emojis.value = response.data;
-          error.value = null;
         } catch (error) {
+          toast.error(`Error fetching emojis: ${error}`)
           console.error('Error fetching emojis:', error);
         } finally {
           loading.value = false
         }
     })
 
+    const debouncedFetchEmojis = useDebounceFn(fetchEmojis, 600);
+
     return {
       searchQuery,
       emojis,
-      error,
       loading,
       filteredEmojis,
-      fetchEmojis,
+      debouncedFetchEmojis,
+      copyToClipboard,
     }
   }
 }
@@ -142,49 +140,12 @@ export default {
   box-shadow: var(--box-shadow);
 }
 
-.movie-details {
-  display: flex;
-  gap: var(--s-spacing);
-  justify-content: center;
-  align-items: center;
-}
-.movie-detail {
-  display: flex;
-  align-items: center;
-  gap: var(--xs-spacing);
-  padding: 4px;
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius);
-  width: fit-content;
-}
-
-.name-rating-duration {
-  display: flex;
-  flex-direction: column;
-  gap: var(--xs-spacing);
-}
-
-/* TODO: figure out a way to have responsive images playing nicely... */
-.movie-img {
-  flex-shrink: 0;
-  width: 4rem;
-  aspect-ratio: 2 / 3;
-}
 .emoji-card img {
   border-radius: var(--radius);
   width: 100%;
   height: 100%;
   object-fit: cover;
   box-shadow: 0 0 8px var(--bg-secondary); /* TODO: find a subtle dropshadow color that works on light & darkmode */
-}
-
-.emoji-card .no-poster {
-  background-color: var(--bg-secondary);
-  height: 100%;
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .results-list {
@@ -211,10 +172,5 @@ export default {
 }
 .empty-state span {
   text-align: center;
-}
-
-.details {
-  display: flex;
-  gap: var(--xs-spacing);
 }
 </style>

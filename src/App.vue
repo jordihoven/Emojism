@@ -4,4 +4,5 @@
 
 <template>
   <RouterView />
+  <section id="toaster-wrapper" data-position="bottom-center"></section>
 </template>

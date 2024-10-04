@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="search-wrapper">
       <div class="input-container">
-        <input class="search" v-model="searchQuery" @input="debouncedFetchEmojis" placeholder="Search emoji by title or description..." />
+        <input class="search" v-model="searchQuery" @input="searchQuery.length >= 3 && debouncedFetchEmojis()" placeholder="Search emoji by title or description..." />
         <LucideSearch class="icon search-icon"></LucideSearch>
       </div>
     </div>
@@ -12,7 +12,7 @@
         <span class="research">Researches automatically when you change your searchterm ✨</span>
       </div>
       <div v-else-if="emojis.length" class="results-list">
-        <div v-for="emoji in filteredEmojis" :key="emoji.slug" class="emoji-card" @click="copyToClipboard(emoji.character)">
+        <div v-for="emoji in emojis" :key="emoji.slug" class="emoji-card" @click="copyToClipboard(emoji.character)">
          {{ emoji.character }}
         </div>
       </div>
@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import axios from 'axios';
 import { useClipboard } from '@vueuse/core';
 import { useDebounceFn } from '@vueuse/core';
@@ -43,12 +43,6 @@ export default {
       toast.success(`${emoji} copied to clipboard!`)
     };
 
-    const filteredEmojis = computed(() => {
-      return emojis.value.filter((emoji) =>
-        emoji.unicodeName.toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
-    });
-
     // Fetch movies from API
     const fetchEmojis = (async () => {
         loading.value = true
@@ -63,13 +57,12 @@ export default {
         }
     })
 
-    const debouncedFetchEmojis = useDebounceFn(fetchEmojis, 600);
+    const debouncedFetchEmojis = useDebounceFn(fetchEmojis, 1200);
 
     return {
       searchQuery,
       emojis,
       loading,
-      filteredEmojis,
       debouncedFetchEmojis,
       copyToClipboard,
     }

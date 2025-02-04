@@ -2,7 +2,12 @@
   <div class="app-container">
     <div class="search-wrapper">
       <div class="input-container">
-        <input class="search" v-model="searchQuery" @input="searchQuery.length >= 3 && debouncedFetchEmojis()" placeholder="Search emoji by title or description..." />
+        <input
+          class="search"
+          v-model="searchQuery"
+          @input="searchQuery.length >= 3 && debouncedFetchEmojis()"
+          placeholder="Search emoji by title or description..."
+        />
         <LucideSearch class="icon search-icon"></LucideSearch>
       </div>
     </div>
@@ -13,7 +18,7 @@
       </div>
       <div v-else-if="emojis.length" class="results-list">
         <div v-for="emoji in emojis" :key="emoji.slug" class="emoji-card" @click="copyToClipboard(emoji.character)">
-         {{ emoji.character }}
+          {{ emoji.character }}
         </div>
       </div>
       <div v-else class="empty-state">
@@ -25,10 +30,10 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import axios from 'axios';
-import { useClipboard } from '@vueuse/core';
-import { useDebounceFn } from '@vueuse/core';
+import { ref } from 'vue'
+import axios from 'axios'
+import { useClipboard } from '@vueuse/core'
+import { useDebounceFn } from '@vueuse/core'
 import { toast } from 'toaster-ts'
 
 export default {
@@ -36,35 +41,35 @@ export default {
     const searchQuery = ref('')
     const emojis = ref([])
     const loading = ref(false)
-    const { copy } = useClipboard();
+    const { copy } = useClipboard()
 
     const copyToClipboard = (emoji) => {
       copy(emoji)
       toast.success(`${emoji} copied to clipboard!`)
-    };
+    }
 
     // Fetch movies from API
-    const fetchEmojis = (async () => {
-        loading.value = true
-        try {
-          const response = await axios.get(`/.netlify/functions/get-emojis?query=${searchQuery.value.trim()}`);
-          emojis.value = response.data;
-        } catch (error) {
-          toast.error(`Error fetching emojis: ${error}`)
-          console.error('Error fetching emojis:', error);
-        } finally {
-          loading.value = false
-        }
-    })
+    const fetchEmojis = async () => {
+      loading.value = true
+      try {
+        const response = await axios.get(`/.netlify/functions/get-emojis?query=${searchQuery.value.trim()}`)
+        emojis.value = response.data
+      } catch (error) {
+        toast.error(`Error fetching emojis: ${error}`)
+        console.error('Error fetching emojis:', error)
+      } finally {
+        loading.value = false
+      }
+    }
 
-    const debouncedFetchEmojis = useDebounceFn(fetchEmojis, 1200);
+    const debouncedFetchEmojis = useDebounceFn(fetchEmojis, 1200)
 
     return {
       searchQuery,
       emojis,
       loading,
       debouncedFetchEmojis,
-      copyToClipboard,
+      copyToClipboard
     }
   }
 }
@@ -125,6 +130,7 @@ export default {
   padding: var(--xs-spacing);
   background-color: var(--bg-primary);
   transition: var(--transition);
+  font-size: 3em;
 }
 .emoji-card:hover {
   cursor: pointer;

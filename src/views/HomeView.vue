@@ -17,8 +17,8 @@
         <span class="research">Researches automatically when you change your searchterm ✨</span>
       </div>
       <div v-else-if="emojis.length" class="results-list">
-        <div v-for="emoji in emojis" :key="emoji.slug" class="emoji-card" @click="copyToClipboard(emoji.character)">
-          {{ emoji.character }}
+        <div v-for="emoji in emojis" :key="emoji.order" class="emoji-card" @click="copyToClipboard(emoji.emoji)">
+          {{ emoji.emoji }}
         </div>
       </div>
       <div v-else class="empty-state">

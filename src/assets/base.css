@@ -126,12 +126,14 @@ a:hover {
 
 /* toaster-ts overrides */
 #app #toaster-wrapper .toast {
-  border-radius: var(--radius);
+  border-radius: 100em;
   background-color: var(--bg-primary);
   border-color: var(--stroke);
   color: var(--text-primary);
   box-shadow: none;
-  padding: var(--xs-spacing);
+  padding: var(--s-spacing);
+  font-size: var(--body);
+  justify-content: center;
 }
 
 /* loader animation. simply add .loader to any element to make it rotate */

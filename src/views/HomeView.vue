@@ -13,8 +13,8 @@
     </div>
     <div class="results-wrapper">
       <div v-if="loading" class="empty-state">
-        <p class="medium">Loading emoji's...</p>
-        <span class="research">Researches automatically when you change your searchterm ✨</span>
+        <p class="medium text-center">Loading emoji's...</p>
+        <span class="research block">Searches automatically when you change your searchterm ✨</span>
       </div>
       <div v-else-if="emojis.length" class="results-list">
         <div v-for="emoji in emojis" :key="emoji.order" class="emoji-card" @click="copyToClipboard(emoji.emoji)">
@@ -22,57 +22,73 @@
         </div>
       </div>
       <div v-else class="empty-state">
-        <p class="medium">Nothing to show</p>
-        <span>Searches automatically when you finish typing... ✨</span>
+        <div v-if="recentCopies.length" class="recent-copies">
+          <p class="medium">Recent copies</p>
+          <div class="results-list">
+            <div v-for="(emoji, index) in recentCopies" :key="index" class="emoji-card" @click="copyToClipboard(emoji)">
+              {{ emoji }}
+            </div>
+          </div>
+        </div>
+        <div v-else>
+          <p class="medium text-center">Nothing to show</p>
+          <span class="block">Searches automatically when you finish typing... ✨</span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
+<script setup>
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useClipboard } from '@vueuse/core'
 import { useDebounceFn } from '@vueuse/core'
 import { toast } from 'toaster-ts'
 
-export default {
-  setup() {
-    const searchQuery = ref('')
-    const emojis = ref([])
-    const loading = ref(false)
-    const { copy } = useClipboard()
+const searchQuery = ref('')
+const emojis = ref([])
+const loading = ref(false)
+const { copy } = useClipboard()
 
-    const copyToClipboard = (emoji) => {
-      copy(emoji)
-      toast.success(`${emoji} copied to clipboard!`)
-    }
+const recentCopies = ref([]) // stores recently copied emojis
 
-    // Fetch movies from API
-    const fetchEmojis = async () => {
-      loading.value = true
-      try {
-        const response = await axios.get(`/.netlify/functions/get-emojis?query=${searchQuery.value.trim()}`)
-        emojis.value = response.data
-      } catch (error) {
-        toast.error(`Error fetching emojis: ${error}`)
-        console.error('Error fetching emojis:', error)
-      } finally {
-        loading.value = false
-      }
-    }
+const copyToClipboard = (emoji) => {
+  copy(emoji)
+  addToRecentCopies(emoji)
+  toast(`${emoji} copied to clipboard!`)
+}
 
-    const debouncedFetchEmojis = useDebounceFn(fetchEmojis, 1200)
-
-    return {
-      searchQuery,
-      emojis,
-      loading,
-      debouncedFetchEmojis,
-      copyToClipboard
-    }
+// Fetch emojis from API
+const fetchEmojis = async () => {
+  loading.value = true
+  try {
+    const response = await axios.get(`/.netlify/functions/get-emojis?query=${searchQuery.value.trim()}`)
+    emojis.value = response.data
+  } catch (error) {
+    toast.error(`Error fetching emojis: ${error}`)
+    console.error('Error fetching emojis:', error)
+  } finally {
+    loading.value = false
   }
 }
+
+const debouncedFetchEmojis = useDebounceFn(fetchEmojis, 1200)
+
+const addToRecentCopies = (emoji) => {
+  // stores recent copies to recentCopies const...
+  if (!recentCopies.value.includes(emoji)) {
+    recentCopies.value.push(emoji)
+    localStorage.setItem('recentEmojis', JSON.stringify(recentCopies.value))
+  }
+}
+
+onMounted(() => {
+  const storedCopies = localStorage.getItem('recentEmojis')
+  if (storedCopies) {
+    recentCopies.value = JSON.parse(storedCopies)
+  }
+})
 </script>
 
 <style scoped lang="css">
@@ -88,7 +104,7 @@ export default {
 }
 
 .search-wrapper {
-  border-bottom: 1px solid var(--stroke);
+  border-bottom: var(--border);
   padding: var(--s-spacing);
 }
 
@@ -167,9 +183,20 @@ export default {
   gap: var(--xs-spacing);
   margin: 0 auto;
   max-width: 60rem;
-  align-items: center;
 }
 .empty-state span {
   text-align: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.recent-copies p {
+  margin-bottom: var(--xs-spacing);
+}
+
+.block {
+  display: block;
 }
 </style>
